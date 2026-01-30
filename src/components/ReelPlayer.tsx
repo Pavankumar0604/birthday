@@ -57,32 +57,34 @@ export const ReelPlayer = () => {
     }, [isGrowthComplete]);
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden flex flex-col md:flex-row">
+        <div className="relative w-full h-screen bg-black text-white overflow-hidden">
             {/* Particle Heart-Tree System */}
             <ParticlesBg onGrowthComplete={() => setIsGrowthComplete(true)} />
 
-            <div className="relative z-10 w-full md:w-1/2 h-full flex flex-col justify-center px-8 md:px-16 pt-12 md:pt-0 pointer-events-none opacity-[0.75]">
-                <div className="flex flex-col gap-2 md:gap-4 max-w-xl text-left">
-                    <AnimatePresence>
-                        {isGrowthComplete && MESSAGES.map((line, i) => (
-                            i < visibleLines && (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                >
-                                    <TypewriterLine text={line} delay={0} />
-                                    {/* Personalization: Name integrated into message at index 1 */}
-                                </motion.div>
-                            )
-                        ))}
-                    </AnimatePresence>
+            {/* Content Layer: Absolute on mobile for overlay, Flex on desktop for side-by-side */}
+            <div className="absolute inset-0 z-10 flex flex-col md:flex-row pointer-events-none">
+                <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-6 md:px-16 pt-16 md:pt-0 opacity-[0.75]">
+                    <div className="flex flex-col gap-2 md:gap-4 max-w-xl text-left">
+                        <AnimatePresence>
+                            {isGrowthComplete && MESSAGES.map((line, i) => (
+                                i < visibleLines && (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                    >
+                                        <TypewriterLine text={line} delay={0} />
+                                    </motion.div>
+                                )
+                            ))}
+                        </AnimatePresence>
+                    </div>
                 </div>
-            </div>
 
-            {/* RIGHT SIDE: Layout Balance tracker */}
-            <div className="relative z-10 w-full md:w-1/2 h-full pointer-events-none" />
+                {/* RIGHT SIDE (only takes space on MD+) */}
+                <div className="hidden md:block w-1/2 h-full" />
+            </div>
 
             {/* Footer Interaction Hint */}
             <motion.div

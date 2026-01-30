@@ -55,8 +55,8 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
 
         const trunkHeight = height * 0.30;
         const trunkTopY = groundY - trunkHeight;
-        const trunkBaseW = isMobile ? 35 : 55;
-        const heartPixelScale = trunkBaseW * 3.0;
+        const trunkBaseW = isMobile ? 32 : 55; // Slightly slimmer mobile trunk 
+        const heartPixelScale = isMobile ? trunkBaseW * 2.6 : trunkBaseW * 3.0; // Reduced mobile spread
         const originY = trunkTopY - heartPixelScale * 0.70;
 
         const newParticles: Particle[] = [];
@@ -121,8 +121,9 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const width = canvas.width;
-        const height = canvas.height;
+        // CRITICAL: Use clientWidth/Height (Logical Pixels) because ctx is already scaled by DPR
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
         const time = performance.now();
         if (!phaseStartTime.current) phaseStartTime.current = time;
         const elapsed = time - phaseStartTime.current;
@@ -299,7 +300,8 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             const shiftProgress = phase.current === 'complete' ? 1 : Math.min(elapsed / duration, 1);
             const easeShift = 1 - Math.pow(1 - shiftProgress, 3);
             const targetX = isMobile ? 0 : width * 0.25;
-            treeOffsetX.current = targetX * easeShift;
+            // On mobile, ensure we are strictly centered
+            treeOffsetX.current = isMobile ? 0 : targetX * easeShift;
 
             currentCx = cx + treeOffsetX.current;
             drawGround();
