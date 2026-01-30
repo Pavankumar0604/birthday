@@ -38,7 +38,10 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
     const COLORS = [
         "#ffb7b2", "#ff9cee", "#ff585d", "#ffd275", "#fffc96", "#ffa500"
     ];
-    const TRUNK_COLOR = "#f6b1c8";
+    // More sophisticated "Dusty Rose"/Metallic Pink for depth
+    const TRUNK_COLOR = "#e195ab";
+    const DUST_COUNT = 100;
+    const dustParticles = useRef<{ x: number, y: number, s: number, o: number, t: number }[]>([]);
 
     // Implicit Heart Equation
     const isInsideHeart = (x: number, y: number) => {
@@ -55,8 +58,8 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
 
         const trunkHeight = height * 0.30;
         const trunkTopY = groundY - trunkHeight;
-        const trunkBaseW = isMobile ? 32 : 55; // Slightly slimmer mobile trunk 
-        const heartPixelScale = isMobile ? trunkBaseW * 2.6 : trunkBaseW * 3.0; // Reduced mobile spread
+        const trunkBaseW = isMobile ? Math.min(width * 0.1, 32) : 55; // Fluid base
+        const heartPixelScale = isMobile ? trunkBaseW * 2.8 : trunkBaseW * 3.0; // Responsive canopy
         const originY = trunkTopY - heartPixelScale * 0.70;
 
         const newParticles: Particle[] = [];
@@ -113,6 +116,19 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             }
         }
         particles.current = newParticles;
+
+        // Init Atmospheric Dust
+        const newDust = [];
+        for (let i = 0; i < DUST_COUNT; i++) {
+            newDust.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                s: Math.random() * 1.5 + 0.5,
+                o: Math.random() * 0.5,
+                t: Math.random() * Math.PI * 2
+            });
+        }
+        dustParticles.current = newDust;
     }, []);
 
     const draw = useCallback(() => {
@@ -128,16 +144,31 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         if (!phaseStartTime.current) phaseStartTime.current = time;
         const elapsed = time - phaseStartTime.current;
 
-        ctx.clearRect(0, 0, width, height);
-
         const isMobile = width < 768;
         const cx = width / 2;
         const groundY = height * 0.95;
         const finalTrunkHeight = height * 0.30;
-        const trunkBaseW = isMobile ? 35 : 55;
+        const trunkBaseW = isMobile ? 32 : 55;
         const trunkTopW = trunkBaseW * 0.7;
 
         let currentCx = cx + treeOffsetX.current;
+
+        // 1. Draw Atmospheric Background (Deep Radial Gradient)
+        const grad = ctx.createRadialGradient(cx, height * 0.4, 0, cx, height * 0.4, Math.max(width, height));
+        grad.addColorStop(0, "#0a020a");
+        grad.addColorStop(1, "#000000");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        // 2. Draw Twinkling Dust
+        dustParticles.current.forEach(d => {
+            d.t += 0.01;
+            const opacity = (Math.sin(d.t) + 1) * 0.5 * d.o;
+            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.s, 0, Math.PI * 2);
+            ctx.fill();
+        });
 
         // Draw Ground Line (exactly at trunk base)
         const drawGround = () => {
@@ -167,9 +198,18 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
 
             ctx.beginPath();
             ctx.moveTo(centerX - trunkBaseW / 2, groundY);
-            ctx.quadraticCurveTo(centerX - trunkBaseW * 0.2 + curveOffset, groundY - h * 0.5, centerX - trunkTopW / 2 + curveOffset, hTopY);
+            // Better tapering with cubic curve
+            ctx.bezierCurveTo(
+                centerX - trunkBaseW * 0.2 + curveOffset, groundY - h * 0.3,
+                centerX - trunkTopW * 0.2 + curveOffset, hTopY + h * 0.2,
+                centerX - trunkTopW / 2 + curveOffset, hTopY
+            );
             ctx.lineTo(centerX + trunkTopW / 2 + curveOffset, hTopY);
-            ctx.quadraticCurveTo(centerX + trunkBaseW * 0.2 + curveOffset, groundY - h * 0.5, centerX + trunkBaseW / 2, groundY);
+            ctx.bezierCurveTo(
+                centerX + trunkTopW * 0.2 + curveOffset, hTopY + h * 0.2,
+                centerX + trunkBaseW * 0.2 + curveOffset, groundY - h * 0.3,
+                centerX + trunkBaseW / 2, groundY
+            );
             ctx.fill();
 
             if (h > finalTrunkHeight * 0.5) {
@@ -202,9 +242,10 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             ctx.translate(cx, seedY);
             ctx.scale(pulse, pulse);
 
-            ctx.fillStyle = "white";
             ctx.font = "16px sans-serif";
             ctx.textAlign = "center";
+            ctx.fillStyle = "white"; // Keep fillStyle for text color
+            ctx.globalAlpha = 0.3; // Much subtler hint
             ctx.fillText("Click to Plant 🌱", 0, 50);
 
             ctx.fillStyle = "#ff1493";
@@ -299,7 +340,8 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             const duration = 1200;
             const shiftProgress = phase.current === 'complete' ? 1 : Math.min(elapsed / duration, 1);
             const easeShift = 1 - Math.pow(1 - shiftProgress, 3);
-            const targetX = isMobile ? 0 : width * 0.25;
+            // Better Layout Balance: Tree at 20% on desktop (closer to text)
+            const targetX = isMobile ? 0 : width * 0.22;
             // On mobile, ensure we are strictly centered
             treeOffsetX.current = isMobile ? 0 : targetX * easeShift;
 
@@ -325,10 +367,9 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
                 ctx.rotate(p.rotation * Math.PI / 180);
                 ctx.fillStyle = p.color;
 
-                ctx.fillStyle = p.color;
-
-                // Depth is represented only by size (depthScale) and opacity (baseOpacity)
-                // as per strict user constraint.
+                // Luminous Canopy: Add soft bloom for premium feel
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = p.depthScale > 1.0 ? 8 : 4;
 
                 ctx.beginPath();
                 ctx.moveTo(0, 0);

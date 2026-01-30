@@ -32,7 +32,7 @@ const TypewriterLine = ({ text, delay }: { text: string; delay: number }) => {
     }, [text, delay]);
 
     return (
-        <p className="text-base md:text-xl font-mono text-white tracking-wider drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+        <p className="text-base md:text-xl font-mono text-white tracking-wider drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
             {displayedText}
         </p>
     );
@@ -63,7 +63,7 @@ export const ReelPlayer = () => {
 
             {/* Content Layer: Absolute on mobile for overlay, Flex on desktop for side-by-side */}
             <div className="absolute inset-0 z-10 flex flex-col md:flex-row pointer-events-none">
-                <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-6 md:px-16 pt-16 md:pt-0 opacity-[0.75]">
+                <div className="w-full md:w-[45%] h-full flex flex-col justify-center px-8 md:pl-20 md:pr-0 pt-16 md:pt-0 opacity-[0.85]">
                     <div className="flex flex-col gap-2 md:gap-4 max-w-xl text-left">
                         <AnimatePresence>
                             {isGrowthComplete && MESSAGES.map((line, i) => (
