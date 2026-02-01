@@ -56,10 +56,10 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const cx = width / 2; // Start center
         const groundY = height * 0.95;
 
-        const trunkHeight = height * 0.30;
+        const trunkHeight = isMobile ? height * 0.28 : height * 0.30;
         const trunkTopY = groundY - trunkHeight;
-        const trunkBaseW = isMobile ? Math.min(width * 0.1, 32) : 55; // Fluid base
-        const heartPixelScale = isMobile ? trunkBaseW * 2.8 : trunkBaseW * 3.0; // Responsive canopy
+        const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.08, 30)) : 50;
+        const heartPixelScale = isMobile ? trunkBaseW * 3.0 : trunkBaseW * 3.2;
         const originY = trunkTopY - heartPixelScale * 0.70;
 
         const newParticles: Particle[] = [];
@@ -147,9 +147,9 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const isMobile = width < 768;
         const cx = width / 2;
         const groundY = height * 0.95;
-        const finalTrunkHeight = height * 0.30;
-        const trunkBaseW = isMobile ? 32 : 55;
-        const trunkTopW = trunkBaseW * 0.7;
+        const finalTrunkHeight = isMobile ? height * 0.28 : height * 0.30;
+        const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.08, 30)) : 50;
+        const trunkTopW = trunkBaseW * 0.65;
 
         let currentCx = cx + treeOffsetX.current;
 
@@ -526,10 +526,12 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
                 if (!rect) return;
 
                 const cx = rect.width / 2 + treeOffsetX.current;
-                const trunkHeight = rect.height * 0.30;
+                const trunkHeight = isMobile ? rect.height * 0.28 : rect.height * 0.30;
                 const trunkTopY = rect.height * 0.95 - trunkHeight;
-                // Hit canopy center
-                const canopyCenterY = trunkTopY - (isMobile ? 35 : 55) * 1.2;
+                // Hit canopy center - matched to heartPixelScale
+                const trunkBaseW = isMobile ? Math.min(rect.width * 0.08, 30) : 50;
+                const heartPixelScale = isMobile ? trunkBaseW * 3.0 : trunkBaseW * 3.2;
+                const canopyCenterY = trunkTopY - heartPixelScale * 0.70;
 
                 const dist = Math.sqrt(Math.pow(clientX - cx, 2) + Math.pow(clientY - canopyCenterY, 2));
 
