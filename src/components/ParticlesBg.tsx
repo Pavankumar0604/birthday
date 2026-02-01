@@ -32,11 +32,13 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
     // Animation State
     const phase = useRef<Phase>('seed');
     const phaseStartTime = useRef<number>(0);
-    const treeOffsetX = useRef<number>(0); // Animates towards width * 0.25 (or 0.75 target)
+    const treeOffsetX = useRef<number>(0);
+    const mousePos = useRef({ x: 0, y: 0 }); // For micro-parallax
+    const targetMousePos = useRef({ x: 0, y: 0 });
 
     // --- CONFIG ---
     const COLORS = [
-        "#ffb7b2", "#ff9cee", "#ff585d", "#ffd275", "#fffc96", "#ffa500"
+        "#ff1493", "#ff0000", "#ff69b4", "#ffd275", "#ff4500", "#ffb6c1"
     ];
     // More sophisticated "Dusty Rose"/Metallic Pink for depth
     const TRUNK_COLOR = "#e195ab";
@@ -56,14 +58,14 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const cx = width / 2; // Start center
         const groundY = height * 0.95;
 
-        const trunkHeight = isMobile ? height * 0.28 : height * 0.30;
+        const trunkHeight = isMobile ? height * 0.35 : height * 0.32;
         const trunkTopY = groundY - trunkHeight;
-        const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.08, 30)) : 50;
-        const heartPixelScale = isMobile ? trunkBaseW * 3.0 : trunkBaseW * 3.2;
+        const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.07, 28)) : 50;
+        const heartPixelScale = isMobile ? trunkBaseW * 5.8 : trunkBaseW * 3.6;
         const originY = trunkTopY - heartPixelScale * 0.70;
 
         const newParticles: Particle[] = [];
-        const particleCount = 1400;
+        const particleCount = isMobile ? 2100 : 1400; // Hyper-density on mobile
         let attempts = 0;
         const maxAttempts = particleCount * 100;
 
@@ -95,21 +97,25 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
                         baseOpacity = 0.95 + Math.random() * 0.05;
                     }
 
+                    // Organic Fringe: Random offset to break the perfect line
+                    const fringeX = (Math.random() - 0.5) * (isMobile ? 12 : 8);
+                    const fringeY = (Math.random() - 0.5) * (isMobile ? 12 : 8);
+
                     newParticles.push({
                         x: cx,
                         y: trunkTopY,
-                        homeX,
-                        homeY,
-                        size: 9, // Slightly smaller base size for refinement
+                        homeX: homeX + fringeX,
+                        homeY: homeY + fringeY,
+                        size: isMobile ? 10 : 9, // Substantial hearts on mobile
                         depthScale,
-                        baseOpacity,
+                        baseOpacity: baseOpacity * 0.9,
                         color: COLORS[Math.floor(Math.random() * COLORS.length)],
                         rotation: Math.random() * 360,
                         swayOffset: Math.random() * 100,
                         bloomDelay: dist * 0.002 + Math.random() * 0.3,
                         vx: 0,
                         vy: 0,
-                        startX: homeX, // Initialize to home for safety
+                        startX: homeX,
                         startY: homeY
                     });
                 }
@@ -147,11 +153,18 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const isMobile = width < 768;
         const cx = width / 2;
         const groundY = height * 0.95;
-        const finalTrunkHeight = isMobile ? height * 0.28 : height * 0.30;
-        const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.08, 30)) : 50;
+        const finalTrunkHeight = isMobile ? height * 0.35 : height * 0.32;
+        const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.07, 28)) : 48;
         const trunkTopW = trunkBaseW * 0.65;
 
-        let currentCx = cx + treeOffsetX.current;
+        // 0. Micro-parallax interpolation
+        mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.05;
+        mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.05;
+
+        const parallaxX = mousePos.current.x * 20;
+        const parallaxY = mousePos.current.y * 10;
+
+        let currentCx = cx + treeOffsetX.current + parallaxX;
 
         // 1. Draw Atmospheric Background (Deep Radial Gradient)
         const grad = ctx.createRadialGradient(cx, height * 0.4, 0, cx, height * 0.4, Math.max(width, height));
@@ -190,8 +203,17 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             ctx.shadowColor = TRUNK_COLOR;
             ctx.shadowBlur = h > finalTrunkHeight * 0.8 ? 10 : 0;
 
-            ctx.fillStyle = TRUNK_COLOR;
-            ctx.strokeStyle = TRUNK_COLOR;
+            // Premium Trunk Depth Gradient
+            // Premium Lustrous Trunk Gradient
+            const trunkGrad = ctx.createLinearGradient(centerX, groundY, centerX, hTopY);
+            trunkGrad.addColorStop(0, "#8b3a4d"); // Deepest base
+            trunkGrad.addColorStop(0.3, TRUNK_COLOR);
+            trunkGrad.addColorStop(0.5, "#ffb6c1"); // Luminous rim highlight
+            trunkGrad.addColorStop(0.7, TRUNK_COLOR);
+            trunkGrad.addColorStop(1, "#f8bbd0"); // Radiant top
+
+            ctx.fillStyle = trunkGrad;
+            ctx.strokeStyle = trunkGrad;
 
             // Added subtle 1.5 degree organic curve to the trunk
             const curveOffset = 5 * (h / finalTrunkHeight);
@@ -242,10 +264,10 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             ctx.translate(cx, seedY);
             ctx.scale(pulse, pulse);
 
-            ctx.font = "16px sans-serif";
+            ctx.font = isMobile ? "14px sans-serif" : "18px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillStyle = "white"; // Keep fillStyle for text color
-            ctx.globalAlpha = 0.3; // Much subtler hint
+            ctx.fillStyle = "white";
+            ctx.globalAlpha = 0.3;
             ctx.fillText("Click to Plant 🌱", 0, 50);
 
             ctx.fillStyle = "#ff1493";
@@ -340,7 +362,7 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
             const duration = 1200;
             const shiftProgress = phase.current === 'complete' ? 1 : Math.min(elapsed / duration, 1);
             const easeShift = 1 - Math.pow(1 - shiftProgress, 3);
-            // Better Layout Balance: Tree at 20% on desktop (closer to text)
+            // Balanced Layout: Restore harmonious 22% offset for desktop
             const targetX = isMobile ? 0 : width * 0.22;
             // On mobile, ensure we are strictly centered
             treeOffsetX.current = isMobile ? 0 : targetX * easeShift;
@@ -354,22 +376,27 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
                 const floatY = Math.sin(time * 0.0008 + p.swayOffset) * 0.6;
                 const floatX = Math.cos(time * 0.0012 + p.swayOffset) * 0.4;
 
-                const px = p.homeX + treeOffsetX.current + floatX;
-                const py = p.homeY + floatY;
+                const px = p.homeX + treeOffsetX.current + floatX + parallaxX * (p.depthScale - 0.5);
+                const py = p.homeY + floatY + parallaxY * (p.depthScale - 0.5);
+
+                const breathingPulse = 1 + Math.sin(time * 0.001) * 0.025;
+                const finalPx = px;
+                const finalPy = py + (p.homeY - py) * (1 - breathingPulse);
 
                 p.x = px;
                 p.y = py;
 
-                const s = p.size * p.depthScale;
+                const s = p.size * p.depthScale * (isMobile ? breathingPulse : 1.0);
                 ctx.save();
                 ctx.globalAlpha = p.baseOpacity;
-                ctx.translate(px, py);
+                ctx.translate(finalPx, finalPy);
                 ctx.rotate(p.rotation * Math.PI / 180);
                 ctx.fillStyle = p.color;
 
-                // Luminous Canopy: Add soft bloom for premium feel
+                // Radiant Luminous Bloom: Powerful presence on mobile
                 ctx.shadowColor = p.color;
-                ctx.shadowBlur = p.depthScale > 1.0 ? 8 : 4;
+                ctx.shadowBlur = isMobile ? 22 : (p.depthScale > 1.0 ? 14 : 8);
+                ctx.globalAlpha = p.baseOpacity * (isMobile ? breathingPulse : 1.0);
 
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
@@ -526,11 +553,11 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
                 if (!rect) return;
 
                 const cx = rect.width / 2 + treeOffsetX.current;
-                const trunkHeight = isMobile ? rect.height * 0.28 : rect.height * 0.30;
+                const trunkHeight = isMobile ? rect.height * 0.35 : rect.height * 0.32;
                 const trunkTopY = rect.height * 0.95 - trunkHeight;
-                // Hit canopy center - matched to heartPixelScale
-                const trunkBaseW = isMobile ? Math.min(rect.width * 0.08, 30) : 50;
-                const heartPixelScale = isMobile ? trunkBaseW * 3.0 : trunkBaseW * 3.2;
+                // Hit canopy center - matched to Vibrant Masterpiece 4.0
+                const trunkBaseW = isMobile ? Math.max(16, Math.min(rect.width * 0.07, 28)) : 48;
+                const heartPixelScale = isMobile ? trunkBaseW * 5.8 : trunkBaseW * 3.6;
                 const canopyCenterY = trunkTopY - heartPixelScale * 0.70;
 
                 const dist = Math.sqrt(Math.pow(clientX - cx, 2) + Math.pow(clientY - canopyCenterY, 2));
@@ -557,16 +584,25 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         // Unused variables checked: currentCx (fixed), e (fixed).
         const isMobile = window.innerWidth < 768; // Used in click handler if strictly needed, but rect gives dimensions.
 
+        const handleMouseMove = (e: MouseEvent) => {
+            targetMousePos.current = {
+                x: (e.clientX / window.innerWidth) - 0.5,
+                y: (e.clientY / window.innerHeight) - 0.5
+            };
+        };
+
         handleResize();
         window.addEventListener('resize', handleResize);
         window.addEventListener('mousedown', handleClick);
         window.addEventListener('touchstart', handleClick);
+        window.addEventListener('mousemove', handleMouseMove);
         animationFrameId.current = requestAnimationFrame(draw);
 
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousedown', handleClick);
             window.removeEventListener('touchstart', handleClick);
+            window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId.current);
         };
     }, [initScene, draw]);

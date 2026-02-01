@@ -32,7 +32,7 @@ const TypewriterLine = ({ text, delay }: { text: string; delay: number }) => {
     }, [text, delay]);
 
     return (
-        <p className="text-base md:text-xl font-mono text-white tracking-wider drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
+        <p className="text-[clamp(0.85rem,2.2vw,1.25rem)] font-mono text-white tracking-wider drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
             {displayedText}
         </p>
     );
@@ -57,14 +57,18 @@ export const ReelPlayer = () => {
     }, [isGrowthComplete]);
 
     return (
-        <div className="relative w-full h-screen bg-black text-white overflow-hidden">
-            {/* Particle Heart-Tree System */}
+        <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans">
+            {/* 1. Atmospheric Vignette (Masterpiece depth) */}
+            <div className="absolute inset-0 z-20 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.9)_100%)]" />
+
+            {/* 2. Particle Heart-Tree System */}
             <ParticlesBg onGrowthComplete={() => setIsGrowthComplete(true)} />
 
-            {/* Content Layer: Absolute on mobile for overlay, Flex on desktop for side-by-side */}
-            <div className="absolute inset-0 z-10 flex flex-col md:flex-row pointer-events-none">
-                <div className="w-full md:w-[45%] h-full flex flex-col justify-center px-8 md:pl-20 md:pr-0 pt-16 md:pt-0 opacity-[0.85]">
-                    <div className="flex flex-col gap-2 md:gap-4 max-w-xl text-left">
+            {/* 3. Content Layer: Intimate Balance */}
+            <div className="absolute inset-0 z-30 flex flex-col md:flex-row pointer-events-none">
+                {/* Text Container: Staged for Vibrant Masterpiece 4.0 */}
+                <div className="w-full md:w-[45%] h-full flex flex-col justify-center px-[8vw] md:pl-[8vw] md:pr-0 pt-[10vh] md:pt-0 opacity-[0.95]">
+                    <div className="flex flex-col gap-4 md:gap-7 max-w-2xl text-left">
                         <AnimatePresence>
                             {isGrowthComplete && MESSAGES.map((line, i) => (
                                 i < visibleLines && (
