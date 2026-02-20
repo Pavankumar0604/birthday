@@ -26,6 +26,15 @@ export default {
                 'heart-glow': '0 0 15px rgba(255, 105, 180, 0.6)',
             }
         },
+        keyframes: {
+            shimmer: {
+                '0%': { transform: 'translateX(-150%) skewX(-12deg)' },
+                '100%': { transform: 'translateX(150%) skewX(-12deg)' },
+            }
+        },
+        animation: {
+            shimmer: 'shimmer 2.5s infinite',
+        }
     },
     plugins: [],
 }

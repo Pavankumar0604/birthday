@@ -26,7 +26,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #050008;
   color: white;
-  overflow: hidden;
+  overflow-x: hidden;
+  /* overflow: hidden; Removed to allow vertical scrolling */
 }
 
 .font-serif {
@@ -65,15 +66,24 @@ h3,
 
 /* Ensure full height usage on mobile including address bar handling */
 #root {
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
-  overflow: hidden;
+  /* overflow: hidden; Removed to allow scrolling */
 }
 
 
-/* Hide scrollbar for immersive experience */
+/* Hide scrollbar for immersive experience but allow scrolling */
 ::-webkit-scrollbar {
   width: 0px;
   background: transparent;
+}
+
+/* Utility for safe area spacing if needed */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }

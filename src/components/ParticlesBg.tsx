@@ -58,7 +58,7 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const cx = width / 2; // Start center
         const groundY = height * 0.95;
 
-        const trunkHeight = isMobile ? height * 0.35 : height * 0.32;
+        const trunkHeight = isMobile ? height * 0.22 : height * 0.32;
         const trunkTopY = groundY - trunkHeight;
         const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.07, 28)) : 50;
         const heartPixelScale = isMobile ? trunkBaseW * 5.8 : trunkBaseW * 3.6;
@@ -153,7 +153,7 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
         const isMobile = width < 768;
         const cx = width / 2;
         const groundY = height * 0.95;
-        const finalTrunkHeight = isMobile ? height * 0.35 : height * 0.32;
+        const finalTrunkHeight = isMobile ? height * 0.22 : height * 0.32;
         const trunkBaseW = isMobile ? Math.max(16, Math.min(width * 0.07, 28)) : 48;
         const trunkTopW = trunkBaseW * 0.65;
 
@@ -553,7 +553,7 @@ export const ParticlesBg: React.FC<ParticlesBgProps> = ({ onGrowthComplete }) =>
                 if (!rect) return;
 
                 const cx = rect.width / 2 + treeOffsetX.current;
-                const trunkHeight = isMobile ? rect.height * 0.35 : rect.height * 0.32;
+                const trunkHeight = isMobile ? rect.height * 0.22 : rect.height * 0.32;
                 const trunkTopY = rect.height * 0.95 - trunkHeight;
                 // Hit canopy center - matched to Vibrant Masterpiece 4.0
                 const trunkBaseW = isMobile ? Math.max(16, Math.min(rect.width * 0.07, 28)) : 48;
